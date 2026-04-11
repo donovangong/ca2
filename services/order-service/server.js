@@ -32,7 +32,7 @@ app.get("/health", async (req, res) => {
   }
 });
 
-app.post("/orders", async (req, res) => {
+app.post(["/orders", "/api/orders"], async (req, res) => {
   const { product_id, quantity } = req.body;
 
   if (!product_id || !quantity || quantity < 1) {
@@ -82,7 +82,7 @@ app.post("/orders", async (req, res) => {
   }
 });
 
-app.get("/orders", async (req, res) => {
+app.get(["/orders", "/api/orders"], async (req, res) => {
   try {
     console.log("GET /orders");
     const result = await pool.query(
@@ -95,7 +95,7 @@ app.get("/orders", async (req, res) => {
   }
 });
 
-app.get("/orders/:id", async (req, res) => {
+app.get(["/orders/:id", "/api/orders/:id"], async (req, res) => {
   try {
     console.log("GET /orders/:id", req.params.id);
     const result = await pool.query(

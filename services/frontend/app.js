@@ -1,5 +1,5 @@
-const PRODUCT_API = "";
-const ORDER_API = "";
+const PRODUCT_API = "/api";
+const ORDER_API = "/api";
 
 async function loadProducts() {
   const productsDiv = document.getElementById("products");
@@ -63,5 +63,7 @@ async function loadProducts() {
     messageDiv.textContent = "Could not load products.";
   }
 }
+
+document.getElementById("refresh-products").addEventListener("click", loadProducts);
 
 loadProducts();

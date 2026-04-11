@@ -2,10 +2,11 @@
 
 This is a small local project with:
 
-- `frontend`: plain HTML/CSS/JS
-- `product-service`: Express API for products
-- `order-service`: Express API for orders
+- `services/frontend`: plain HTML/CSS/JS
+- `services/product-service`: Express API for products
+- `services/order-service`: Express API for orders
 - `postgres`: database with sample data
+- `resources`: database SQL, Kubernetes YAML, and Helm chart
 
 ## Run
 

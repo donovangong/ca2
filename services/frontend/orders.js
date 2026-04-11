@@ -1,4 +1,4 @@
-const ORDER_API = "http://localhost:3002";
+const ORDER_API = "/api";
 
 async function loadOrders() {
   const ordersDiv = document.getElementById("orders");
