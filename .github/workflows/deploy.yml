@@ -1,0 +1,28 @@
+name: CA2 Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Docker images
+        run: |
+          docker build -t ca2-frontend:latest ./frontend
+          docker build -t ca2-product:latest ./product-service
+          docker build -t ca2-order:latest ./order-service
+
+      - name: Import images into k3s
+        run: |
+          docker save ca2-frontend:latest | sudo k3s ctr images import -
+          docker save ca2-product:latest | sudo k3s ctr images import -
+          docker save ca2-order:latest | sudo k3s ctr images import -
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install ca2 ./helm/ca2 -n ca2 --create-namespace
