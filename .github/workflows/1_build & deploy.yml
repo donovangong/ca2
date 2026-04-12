@@ -1,4 +1,4 @@
-name: build
+name: build-and-deploy
 
 on:
   workflow_dispatch:
@@ -36,3 +36,17 @@ jobs:
           docker save ca2-frontend:latest | /usr/local/bin/k3s ctr images import -
           docker save ca2-product-service:latest | /usr/local/bin/k3s ctr images import -
           docker save ca2-order-service:latest | /usr/local/bin/k3s ctr images import -
+
+      - name: Prepare kubeconfig
+        run: |
+          cp /etc/rancher/k3s/k3s.yaml $RUNNER_TEMP/k3s.yaml
+          chmod 600 $RUNNER_TEMP/k3s.yaml
+
+      - name: Clean Kubernetes resources
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl delete namespace ca2 || true
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl wait --for=delete namespace/ca2 --timeout=60s || true
+
+      - name: Deploy with Helm
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install ca2 ./resources/helm/ca2 -n ca2 --create-namespace

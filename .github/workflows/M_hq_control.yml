@@ -6,19 +6,13 @@ on:
   workflow_dispatch:
 
 jobs:
-    build:
-        name: 1_Build 
-        uses: ./.github/workflows/1_build.yml
+    build_deploy:
+        name: 1_Build_Deploy
+        uses: "./.github/workflows/1_build & deploy.yml"
 
     
     functional_test:
         name: 2_Functional_Test
         uses: ./.github/workflows/2_functional-test.yml
-        needs: build
-
-
-    deploy:
-        name: 3_Deploy
-        uses: ./.github/workflows/3_deploy.yml
-        needs: functional_test
+        needs: build_deploy
     
