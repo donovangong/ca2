@@ -58,6 +58,11 @@ test("GET /api/orders also returns 200 and an array", async () => {
 
 test("POST /orders with valid product_id and quantity creates an order", async () => {
   const quantity = 1;
+  const currentProductResponse = await request(PRODUCT_SERVICE_URL, `/products/${productForOrder.id}`);
+  const currentProduct = currentProductResponse.body;
+
+  assert.strictEqual(currentProductResponse.status, 200);
+
   const response = await request(ORDER_SERVICE_URL, "/orders", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -72,7 +77,7 @@ test("POST /orders with valid product_id and quantity creates an order", async (
   assert.strictEqual(response.body.product_id, productForOrder.id);
   assert.strictEqual(response.body.quantity, quantity);
 
-  const expectedTotal = originalProduct.price * quantity;
+  const expectedTotal = Number(currentProduct.price) * quantity;
   assert.strictEqual(Number(response.body.total_price), expectedTotal);
 
   createdOrder = response.body;
