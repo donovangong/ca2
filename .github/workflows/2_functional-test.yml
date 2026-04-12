@@ -7,6 +7,10 @@ on:
 jobs:
   functional-test:
     runs-on: self-hosted
+    env:
+      PRODUCT_SERVICE_LOCAL_PORT: ${{ vars.PRODUCT_SERVICE_LOCAL_PORT || '3001' }}
+      ORDER_SERVICE_LOCAL_PORT: ${{ vars.ORDER_SERVICE_LOCAL_PORT || '3002' }}
+      FRONTEND_LOCAL_PORT: ${{ vars.FRONTEND_LOCAL_PORT || '8080' }}
 
     steps:
       - name: Checkout code
@@ -16,7 +20,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Prepare kubeconfig
+        run: |
+          cp /etc/rancher/k3s/k3s.yaml $RUNNER_TEMP/k3s.yaml
+          chmod 600 $RUNNER_TEMP/k3s.yaml
+
+      - name: Start local service tunnels
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 port-forward svc/product-service "$PRODUCT_SERVICE_LOCAL_PORT:3001" > product-service-port-forward.log 2>&1 &
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 port-forward svc/order-service "$ORDER_SERVICE_LOCAL_PORT:3002" > order-service-port-forward.log 2>&1 &
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 port-forward svc/frontend "$FRONTEND_LOCAL_PORT:80" > frontend-port-forward.log 2>&1 &
+          sleep 5
           
       - name: Run functional tests
+        env:
+          PRODUCT_SERVICE_URL: http://127.0.0.1:${{ env.PRODUCT_SERVICE_LOCAL_PORT }}
+          ORDER_SERVICE_URL: http://127.0.0.1:${{ env.ORDER_SERVICE_LOCAL_PORT }}
+          FRONTEND_URL: http://127.0.0.1:${{ env.FRONTEND_LOCAL_PORT }}
         run: |
           node test/functional/run-functional-tests.js
