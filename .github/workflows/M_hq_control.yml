@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-    dotnet:
+    build:
         name: 1_Build 
         uses: ./.github/workflows/build.yml
         #secrets: inherit
@@ -17,4 +17,5 @@ jobs:
     deploy:
         name: 4_Deploy
         uses: ./.github/workflows/deploy.yml
+        needs: build
         #secrets: inherit     
