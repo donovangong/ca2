@@ -8,7 +8,7 @@ on:
 jobs:
     dotnet:
         name: 1_Build 
-        uses: ./.github/workflows/CI/build.yml
+        uses: ./.github/workflows/build.yml
         #secrets: inherit
     
     
@@ -16,5 +16,5 @@ jobs:
     
     deploy:
         name: 4_Deploy
-        uses: ./.github/workflows/CD/deploy.yml
+        uses: ./.github/workflows/deploy.yml
         #secrets: inherit     
