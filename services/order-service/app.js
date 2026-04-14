@@ -27,7 +27,11 @@ function createApp(options = {}) {
   const app = express();
   const pool = options.pool || createPool();
   const fetch = options.fetch || defaultFetch;
-  const productServiceUrl = options.productServiceUrl || process.env.PRODUCT_SERVICE_URL || "http://product-service:3001";
+  const productServiceUrl = options.productServiceUrl || process.env.PRODUCT_SERVICE_URL;
+
+  if (!productServiceUrl) {
+    throw new Error("PRODUCT_SERVICE_URL is required");
+  }
 
   app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
