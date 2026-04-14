@@ -52,17 +52,19 @@ function createApp(options = {}) {
     }
   });
 
-  app.post(["/orders", "/api/orders"], async (req, res) => {
-    const { product_id, quantity } = req.body;
+app.post(["/orders", "/api/orders"], async (req, res) => {
+  const { product_id, quantity } = req.body;
+  const productId = Number(product_id);
 
-    if (!product_id || !quantity || quantity < 1) {
-      return res.status(400).json({ error: "product_id and valid quantity are required" });
-    }
+  if (!Number.isInteger(productId) || productId < 1 || !quantity || quantity < 1) {
+    return res.status(400).json({ error: "product_id and valid quantity are required" });
+  }
 
-    try {
-      console.log("POST /orders", req.body);
+  try {
+    console.log("POST /orders", req.body);
 
-      const productResponse = await fetch(`${productServiceUrl}/products/${product_id}`);
+    const productPath = encodeURIComponent(String(productId));
+    const productResponse = await fetch(`${productServiceUrl}/products/${productPath}`);
       const product = await productResponse.json();
 
       if (!productResponse.ok) {
@@ -83,10 +85,10 @@ function createApp(options = {}) {
           `INSERT INTO orders (product_id, quantity, total_price)
            VALUES ($1, $2, $3)
            RETURNING id, product_id, quantity, total_price, created_at`,
-          [product_id, quantity, totalPrice]
+          [productId, quantity, totalPrice]
         );
 
-        await client.query("UPDATE products SET stock = stock - $1 WHERE id = $2", [quantity, product_id]);
+        await client.query("UPDATE products SET stock = stock - $1 WHERE id = $2", [quantity, productId]);
         await client.query("COMMIT");
 
         res.status(201).json(orderResult.rows[0]);
