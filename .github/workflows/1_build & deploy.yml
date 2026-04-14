@@ -62,6 +62,13 @@ jobs:
         run: |
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install ca2 ./resources/helm/ca2 -n ca2 --create-namespace
 
+      - name: Wait for application rollout
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/postgres --timeout=180s
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/product-service --timeout=180s
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/order-service --timeout=180s
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/frontend --timeout=180s
+
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:

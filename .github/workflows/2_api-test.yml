@@ -36,13 +36,6 @@ jobs:
           cp /etc/rancher/k3s/k3s.yaml $RUNNER_TEMP/k3s.yaml
           chmod 600 $RUNNER_TEMP/k3s.yaml
 
-      - name: Wait for Kubernetes deployment rollout
-        run: |
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/postgres --timeout=120s
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/product-service --timeout=120s
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/order-service --timeout=120s
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/frontend --timeout=120s
-
       - name: Start local service tunnels
         run: |
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 port-forward svc/product-service "$PRODUCT_SERVICE_LOCAL_PORT:3001" > product-service-port-forward.log 2>&1 &
