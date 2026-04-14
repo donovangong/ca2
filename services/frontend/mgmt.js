@@ -9,16 +9,16 @@ document.getElementById("login-button").addEventListener("click", () => {
   const loginMessage = document.getElementById("login-message");
 
   if (!adminUser || !adminPassword) {
-    loginMessage.textContent = "Username and password are required.";
+    setMessage(loginMessage, "Username and password are required.");
     return;
   }
 
   if (adminUser !== "admin" || adminPassword !== "admin") {
-    loginMessage.textContent = "Invalid username or password.";
+    setMessage(loginMessage, "Invalid username or password.");
     return;
   }
 
-  loginMessage.textContent = "";
+  setMessage(loginMessage, "");
   document.getElementById("login").style.display = "none";
   document.getElementById("admin").style.display = "block";
   loadAdminProducts();
@@ -31,16 +31,9 @@ async function loadAdminProducts() {
   const messageDiv = document.getElementById("admin-message");
 
   try {
-    const response = await fetch(`${PRODUCT_API}/products`);
-    const products = await response.json();
-
-    productsDiv.innerHTML = "";
-    messageDiv.textContent = "";
-
-    products.forEach((product) => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
+    const products = await fetchJson(`${PRODUCT_API}/products`);
+    setMessage(messageDiv, "");
+    renderCards(productsDiv, products, (product) => `
         <h3>${product.name}</h3>
         <p>ID: ${product.id}</p>
         <label>Price:</label>
@@ -48,15 +41,13 @@ async function loadAdminProducts() {
         <label>Stock:</label>
         <input type="number" min="0" value="${product.stock}" id="stock-${product.id}">
         <button data-id="${product.id}">Save</button>
-      `;
-      productsDiv.appendChild(card);
-    });
+      `);
 
     document.querySelectorAll("button[data-id]").forEach((button) => {
       button.addEventListener("click", () => updateProduct(Number(button.dataset.id)));
     });
   } catch (error) {
-    messageDiv.textContent = "Could not load products.";
+    setMessage(messageDiv, "Could not load products.");
   }
 }
 
@@ -66,12 +57,12 @@ async function updateProduct(productId) {
   const stock = Number(document.getElementById(`stock-${productId}`).value);
 
   if (price < 0 || stock < 0) {
-    messageDiv.textContent = "Price and stock must be valid numbers.";
+    setMessage(messageDiv, "Price and stock must be valid numbers.");
     return;
   }
 
   try {
-    const response = await fetch(`${PRODUCT_API}/products/${productId}`, {
+    await fetchJson(`${PRODUCT_API}/products/${productId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -81,15 +72,9 @@ async function updateProduct(productId) {
       body: JSON.stringify({ price, stock })
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Update failed");
-    }
-
-    messageDiv.textContent = "Product updated.";
+    setMessage(messageDiv, "Product updated.");
     loadAdminProducts();
   } catch (error) {
-    messageDiv.textContent = error.message;
+    setMessage(messageDiv, error.message);
   }
 }

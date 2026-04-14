@@ -10,6 +10,8 @@ const frontendDir = path.join(root, "services", "frontend");
 
 function runFrontendScript(fileName, document, fetchMock) {
   const filePath = path.join(frontendDir, fileName);
+  const sharedPath = path.join(frontendDir, "shared.js");
+  const sharedCode = fs.readFileSync(sharedPath, "utf8");
   const code = fs.readFileSync(filePath, "utf8");
   const context = {
     document,
@@ -21,6 +23,7 @@ function runFrontendScript(fileName, document, fetchMock) {
   };
 
   vm.createContext(context);
+  new vm.Script(sharedCode, { filename: sharedPath }).runInContext(context);
   new vm.Script(code, { filename: filePath }).runInContext(context);
   return context;
 }
