@@ -1,0 +1,69 @@
+name: 5_Pro_Env_Deploy
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Clean k3s images
+        run: |
+          /usr/local/bin/k3s ctr images rm docker.io/library/ca2-frontend:latest || true
+          /usr/local/bin/k3s ctr images rm docker.io/library/ca2-product-service:latest || true
+          /usr/local/bin/k3s ctr images rm docker.io/library/ca2-order-service:latest || true
+
+      - name: Clean Docker image tags
+        run: |
+          docker rmi ca2-frontend:latest || true
+          docker rmi ca2-product-service:latest || true
+          docker rmi ca2-order-service:latest || true
+
+      - name: Build Docker images
+        run: |
+          docker build -t ca2-frontend:latest ./services/frontend
+          docker build -t ca2-product-service:latest ./services/product-service
+          docker build -t ca2-order-service:latest ./services/order-service
+
+      - name: Import images into k3s
+        run: |
+          docker save ca2-frontend:latest | /usr/local/bin/k3s ctr images import -
+          docker save ca2-product-service:latest | /usr/local/bin/k3s ctr images import -
+          docker save ca2-order-service:latest | /usr/local/bin/k3s ctr images import -
+
+      - name: Prepare kubeconfig
+        run: |
+          cp /etc/rancher/k3s/k3s.yaml $RUNNER_TEMP/k3s.yaml
+          chmod 600 $RUNNER_TEMP/k3s.yaml
+
+      - name: Clean Kubernetes resources
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl delete namespace ca2 || true
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl wait --for=delete namespace/ca2 --timeout=60s || true
+
+      - name: Install KEDA
+        run: |
+          if ! KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm status keda -n keda >/dev/null 2>&1; then
+            KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm repo add kedacore https://kedacore.github.io/charts --force-update
+            KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm repo update
+            KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install keda kedacore/keda -n keda --create-namespace
+          fi
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n keda rollout status deployment/keda-operator --timeout=120s
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n keda rollout status deployment/keda-operator-metrics-apiserver --timeout=120s
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n keda rollout status deployment/keda-admission-webhooks --timeout=120s
+
+      - name: Deploy with Helm
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install ca2 ./resources/helm/ca2 -n ca2 --create-namespace
+
+      - name: Wait for application rollout
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/postgres --timeout=180s
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/product-service --timeout=180s
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/order-service --timeout=180s
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/frontend --timeout=180s

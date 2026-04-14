@@ -1,4 +1,4 @@
-name: HQ Control of All workflow
+name: M_HQ_Control
 
 on:
   #push:
@@ -8,24 +8,24 @@ on:
 jobs:
     build_deploy:
         name: 1_Test_Env_Deploy
-        uses: "./.github/workflows/1_build & deploy.yml"
+        uses: ./.github/workflows/1_Test_Env_Deploy.yml
         secrets: inherit
 
     api_test:
         name: 2_API_Test
-        uses: ./.github/workflows/2_api-test.yml
+        uses: ./.github/workflows/2_API_Test.yml
         needs: build_deploy
         secrets: inherit
 
     integration_test:
         name: 2_Integration_Test
-        uses: ./.github/workflows/2_integration-test.yml
+        uses: ./.github/workflows/2_Integration_Test.yml
         needs: build_deploy
         secrets: inherit
 
     sonarqube:
         name: 3_SonarQube
-        uses: ./.github/workflows/3_sonarqube.yml
+        uses: ./.github/workflows/3_SonarQube.yml
         needs:
           - api_test
           - integration_test
@@ -33,7 +33,7 @@ jobs:
 
     dependency_check:
         name: 3_Dependency_Check
-        uses: ./.github/workflows/3_dependency.yml
+        uses: ./.github/workflows/3_Dependency_Check.yml
         needs:
           - api_test
           - integration_test
@@ -41,9 +41,15 @@ jobs:
 
     monitoring:
         name: 4_Monitoring
-        uses: ./.github/workflows/4_monitoring.yml
+        uses: ./.github/workflows/4_Monitoring.yml
         needs:
           - sonarqube
           - dependency_check
+        secrets: inherit
+
+    pro_env_deploy:
+        name: 5_Pro_Env_Deploy
+        uses: ./.github/workflows/5_Pro_Env_Deploy.yml
+        needs: monitoring
         secrets: inherit
     

@@ -1,16 +1,16 @@
-name: 2_integration-test
+name: 2_API_Test
 
 on:
   workflow_dispatch:
   workflow_call:
 
 jobs:
-  integration-test:
+  api_test:
     runs-on: self-hosted
     env:
-      PRODUCT_SERVICE_LOCAL_PORT: ${{ vars.INTEGRATION_PRODUCT_SERVICE_LOCAL_PORT || '3011' }}
-      ORDER_SERVICE_LOCAL_PORT: ${{ vars.INTEGRATION_ORDER_SERVICE_LOCAL_PORT || '3012' }}
-      FRONTEND_LOCAL_PORT: ${{ vars.INTEGRATION_FRONTEND_LOCAL_PORT || '8081' }}
+      PRODUCT_SERVICE_LOCAL_PORT: ${{ vars.PRODUCT_SERVICE_LOCAL_PORT || '3001' }}
+      ORDER_SERVICE_LOCAL_PORT: ${{ vars.ORDER_SERVICE_LOCAL_PORT || '3002' }}
+      FRONTEND_LOCAL_PORT: ${{ vars.FRONTEND_LOCAL_PORT || '8080' }}
 
     steps:
       - name: Checkout code
@@ -21,10 +21,15 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: test/package.json
+          cache-dependency-path: |
+            test/package.json
+            services/product-service/package.json
+            services/order-service/package.json
 
-      - name: Install coverage tools
-        run: npm --prefix test install
+      - name: Install coverage tools and service dependencies
+        run: |
+          npm --prefix test install
+          npm --prefix test run install:services
 
       - name: Prepare kubeconfig
         run: |
@@ -44,15 +49,18 @@ jobs:
           FRONTEND_URL: http://127.0.0.1:${{ env.FRONTEND_LOCAL_PORT }}
         run: node test/helpers/wait-for-services.js
 
-      - name: Run integration tests
+      - name: Run API coverage tests
+        run: npm --prefix test run test:api:coverage
+
+      - name: Run API tests
         env:
           PRODUCT_SERVICE_URL: http://127.0.0.1:${{ env.PRODUCT_SERVICE_LOCAL_PORT }}
           ORDER_SERVICE_URL: http://127.0.0.1:${{ env.ORDER_SERVICE_LOCAL_PORT }}
           FRONTEND_URL: http://127.0.0.1:${{ env.FRONTEND_LOCAL_PORT }}
-        run: npm --prefix test run test:integration:coverage
+        run: npm --prefix test run test:api:deployed
 
-      - name: Upload integration coverage
+      - name: Upload API coverage
         uses: actions/upload-artifact@v4
         with:
-          name: integration-coverage
-          path: coverage/integration/lcov.info
+          name: api-coverage
+          path: coverage/api/lcov.info

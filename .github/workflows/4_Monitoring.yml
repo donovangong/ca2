@@ -1,4 +1,4 @@
-name: 4_monitoring
+name: 4_Monitoring
 
 on:
   workflow_dispatch:
