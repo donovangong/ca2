@@ -3,14 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orders</title>
+  <title>Order Inventory | Orders</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Orders</h1>
-  <p><a href="index.html">Back to Products</a></p>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Order Inventory System</p>
+        <h1>Orders</h1>
+        <p class="page-subtitle">Review recent orders and track activity across the system.</p>
+      </div>
 
-  <div id="orders"></div>
+      <nav class="nav-links" aria-label="Primary">
+        <a class="nav-link" href="index.html">Products</a>
+        <a class="nav-link active" href="orders.html">Orders</a>
+        <a class="nav-link" href="mgmt.html">Management</a>
+      </nav>
+    </header>
+
+    <main class="page-content">
+      <section class="toolbar">
+        <div class="toolbar-copy">
+          <h2>Order history</h2>
+          <p>View the latest orders placed through the storefront.</p>
+        </div>
+
+        <button id="refresh-orders" class="btn btn-secondary" type="button">
+          Refresh
+        </button>
+      </section>
+
+      <div id="orders-message" class="alert" aria-live="polite"></div>
+      <div id="orders" class="card-grid"></div>
+    </main>
+  </div>
 
   <script src="shared.js"></script>
   <script src="orders.js"></script>

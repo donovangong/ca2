@@ -3,25 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Management</title>
+  <title>Order Inventory | Management</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Management</h1>
-  <p><a href="index.html">Back to Products</a></p>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Order Inventory System</p>
+        <h1>Management</h1>
+        <p class="page-subtitle">Update prices and stock levels with the admin panel.</p>
+      </div>
 
-  <div id="login">
-    <h3>Login</h3>
-    <input id="username" placeholder="Username" />
-    <input id="password" type="password" placeholder="Password" />
-    <button id="login-button">Login</button>
-    <div id="login-message"></div>
-  </div>
+      <nav class="nav-links" aria-label="Primary">
+        <a class="nav-link" href="index.html">Products</a>
+        <a class="nav-link" href="orders.html">Orders</a>
+        <a class="nav-link active" href="mgmt.html">Management</a>
+      </nav>
+    </header>
 
-  <div id="admin" style="display: none;">
-    <button id="refresh-admin-products">Refresh Products</button>
-    <div id="admin-message"></div>
-    <div id="admin-products"></div>
+    <main class="page-content">
+      <section id="login" class="panel panel-narrow">
+        <div class="panel-header">
+          <div>
+            <p class="card-label">Admin access</p>
+            <h2>Sign in</h2>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="field-group">
+            <label for="username">Username</label>
+            <input id="username" class="input input-wide" placeholder="Enter username" />
+          </div>
+
+          <div class="field-group">
+            <label for="password">Password</label>
+            <input id="password" class="input input-wide" type="password" placeholder="Enter password" />
+          </div>
+        </div>
+
+        <div class="panel-actions">
+          <button id="login-button" class="btn btn-primary" type="button">Login</button>
+        </div>
+
+        <div id="login-message" class="alert" aria-live="polite"></div>
+      </section>
+
+      <section id="admin" class="panel" style="display: none;">
+        <div class="toolbar">
+          <div class="toolbar-copy">
+            <h2>Inventory management</h2>
+            <p>Update product price and stock, then save changes instantly.</p>
+          </div>
+
+          <button id="refresh-admin-products" class="btn btn-secondary" type="button">
+            Refresh
+          </button>
+        </div>
+
+        <div id="admin-message" class="alert" aria-live="polite"></div>
+        <div id="admin-products" class="card-grid"></div>
+      </section>
+    </main>
   </div>
 
   <script src="shared.js"></script>
