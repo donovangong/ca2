@@ -27,7 +27,7 @@ jobs:
           args: >
             -Dsonar.projectKey=donovangong_ca22
             -Dsonar.organization=donovangong
-            -Dsonar.projectName="CA2 Order Inventory"
+            -Dsonar.projectName="CA2"
             -Dsonar.projectVersion=1.0
             -Dsonar.sources=services,resources
             -Dsonar.tests=test

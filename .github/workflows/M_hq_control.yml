@@ -7,7 +7,7 @@ on:
 
 jobs:
     build_deploy:
-        name: 1_Build_Deploy_Functional_Test
+        name: 1_Test_Env_Deploy
         uses: "./.github/workflows/1_build & deploy.yml"
         secrets: inherit
 

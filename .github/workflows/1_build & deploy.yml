@@ -1,4 +1,4 @@
-name: 1_build-and-deploy
+name: 1_Test_Env_Deploy
 
 on:
   workflow_dispatch:

@@ -26,3 +26,7 @@ jobs:
         run: |
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n monitoring rollout status deployment/monitoring-grafana --timeout=180s
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n monitoring rollout status deployment/monitoring-kube-prometheus-operator --timeout=180s
+
+      - name: Expose Grafana with NodePort
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n monitoring patch svc monitoring-grafana --type merge -p '{"spec":{"type":"NodePort","ports":[{"name":"http-web","port":80,"protocol":"TCP","targetPort":3000,"nodePort":30300}]}}'
