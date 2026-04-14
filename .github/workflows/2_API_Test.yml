@@ -22,13 +22,13 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: |
-            test/package.json
-            services/product-service/package.json
-            services/order-service/package.json
+            test/package-lock.json
+            services/product-service/package-lock.json
+            services/order-service/package-lock.json
 
       - name: Install coverage tools and service dependencies
         run: |
-          npm --prefix test install
+          npm --prefix test ci
           npm --prefix test run install:services
 
       - name: Prepare kubeconfig

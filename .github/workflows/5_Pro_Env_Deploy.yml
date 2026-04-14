@@ -12,30 +12,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Clean k3s images
-        run: |
-          /usr/local/bin/k3s ctr images rm docker.io/library/ca2-frontend:latest || true
-          /usr/local/bin/k3s ctr images rm docker.io/library/ca2-product-service:latest || true
-          /usr/local/bin/k3s ctr images rm docker.io/library/ca2-order-service:latest || true
-
-      - name: Clean Docker image tags
-        run: |
-          docker rmi ca2-frontend:latest || true
-          docker rmi ca2-product-service:latest || true
-          docker rmi ca2-order-service:latest || true
-
-      - name: Build Docker images
-        run: |
-          docker build -t ca2-frontend:latest ./services/frontend
-          docker build -t ca2-product-service:latest ./services/product-service
-          docker build -t ca2-order-service:latest ./services/order-service
-
-      - name: Import images into k3s
-        run: |
-          docker save ca2-frontend:latest | /usr/local/bin/k3s ctr images import -
-          docker save ca2-product-service:latest | /usr/local/bin/k3s ctr images import -
-          docker save ca2-order-service:latest | /usr/local/bin/k3s ctr images import -
-
       - name: Prepare kubeconfig
         run: |
           cp /etc/rancher/k3s/k3s.yaml $RUNNER_TEMP/k3s.yaml

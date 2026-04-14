@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   workflow_call:
 
+env:
+  DOCKER_BUILDKIT: 1
+
 jobs:
   build:
     runs-on: self-hosted
@@ -11,18 +14,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-
-      - name: Clean k3s images
-        run: |
-          /usr/local/bin/k3s ctr images rm docker.io/library/ca2-frontend:latest || true
-          /usr/local/bin/k3s ctr images rm docker.io/library/ca2-product-service:latest || true
-          /usr/local/bin/k3s ctr images rm docker.io/library/ca2-order-service:latest || true
-
-      - name: Clean Docker image tags
-        run: |
-          docker rmi ca2-frontend:latest || true
-          docker rmi ca2-product-service:latest || true
-          docker rmi ca2-order-service:latest || true
 
       - name: Build Docker images
         run: |
@@ -61,6 +52,10 @@ jobs:
         run: |
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install ca2 ./resources/helm/ca2 -n ca2 --create-namespace
 
+      - name: Restart application deployments
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout restart deployment/frontend deployment/product-service deployment/order-service
+
       - name: Wait for application rollout
         run: |
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/postgres --timeout=180s
@@ -73,10 +68,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: test/package.json
+          cache-dependency-path: test/package-lock.json
 
       - name: Install coverage tools
-        run: npm --prefix test install
+        run: npm --prefix test ci
 
       - name: Run functional tests
         run: |

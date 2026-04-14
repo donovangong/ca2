@@ -3,11 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "install:services": "npm --prefix ../services/product-service install && npm --prefix ../services/order-service install",
-    "test:api:deployed": "node api/run-api-tests.js",
-    "test:functional:coverage": "echo Run this command from the repository root with npx --prefix test c8",
-    "test:api:coverage": "echo Run this command from the repository root with npx --prefix test c8",
-    "test:integration:coverage": "echo Run this command from the repository root with npx --prefix test c8"
+    "install:services": "npm --prefix ../services/product-service ci && npm --prefix ../services/order-service ci",
+    "test:api:deployed": "node api/run-api-tests.js"
   },
   "devDependencies": {
     "c8": "^10.1.3"

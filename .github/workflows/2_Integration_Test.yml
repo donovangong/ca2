@@ -21,10 +21,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: test/package.json
+          cache-dependency-path: test/package-lock.json
 
       - name: Install coverage tools
-        run: npm --prefix test install
+        run: npm --prefix test ci
 
       - name: Prepare kubeconfig
         run: |
