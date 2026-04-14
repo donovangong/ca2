@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   sonarqube:
     runs-on: self-hosted
@@ -18,25 +15,28 @@ jobs:
           fetch-depth: 0
 
       - name: Download coverage reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: coverage
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6.0.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=donovangong_ca22
-            -Dsonar.organization=donovangong
-            -Dsonar.projectName=CA2
-            -Dsonar.projectVersion=1.0
-            -Dsonar.sources=services,resources
-            -Dsonar.tests=test
-            -Dsonar.exclusions=**/node_modules/**,**/.git/**,**/coverage/**,**/dist/**,**/build/**
-            -Dsonar.test.inclusions=test/**/*.test.js
-            -Dsonar.cpd.exclusions=test/**,services/product-service/app.js,services/order-service/app.js
-            -Dsonar.javascript.lcov.reportPaths=coverage/functional-coverage/lcov.info,coverage/api-coverage/lcov.info,coverage/integration-coverage/lcov.info
-            -Dsonar.coverage.exclusions=**/server.js,resources/**,test/**
-            -Dsonar.sourceEncoding=UTF-8
+        run: |
+          docker run --rm \
+            -e SONAR_TOKEN="$SONAR_TOKEN" \
+            -v "${{ github.workspace }}:/usr/src" \
+            sonarsource/sonar-scanner-cli:latest \
+            "-Dsonar.host.url=https://sonarcloud.io" \
+            "-Dsonar.projectKey=donovangong_ca22" \
+            "-Dsonar.organization=donovangong" \
+            "-Dsonar.projectName=CA2" \
+            "-Dsonar.projectVersion=1.0" \
+            "-Dsonar.sources=services,resources" \
+            "-Dsonar.tests=test" \
+            "-Dsonar.exclusions=**/node_modules/**,**/.git/**,**/coverage/**,**/dist/**,**/build/**" \
+            "-Dsonar.test.inclusions=test/**/*.test.js" \
+            "-Dsonar.cpd.exclusions=test/**,services/product-service/app.js,services/order-service/app.js" \
+            "-Dsonar.javascript.lcov.reportPaths=coverage/functional-coverage/lcov.info,coverage/api-coverage/lcov.info,coverage/integration-coverage/lcov.info" \
+            "-Dsonar.coverage.exclusions=**/server.js,resources/**,test/**" \
+            "-Dsonar.sourceEncoding=UTF-8"

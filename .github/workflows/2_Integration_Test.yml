@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   integration_test:
     runs-on: self-hosted
@@ -56,7 +53,7 @@ jobs:
           npx --prefix test c8 --reporter=lcov --reporter=text --report-dir coverage/integration --include "services/**/*.js" --exclude "**/server.js" node test/integration/run-integration-tests.js
 
       - name: Upload integration coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: integration-coverage
           path: coverage/integration/lcov.info

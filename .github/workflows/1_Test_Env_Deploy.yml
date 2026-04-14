@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
     runs-on: self-hosted
@@ -86,7 +83,7 @@ jobs:
           npx --prefix test c8 --reporter=lcov --reporter=text --report-dir coverage/functional --include "services/frontend/**/*.js" node test/functional/run-functional-tests.js
 
       - name: Upload functional coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: functional-coverage
           path: coverage/functional/lcov.info

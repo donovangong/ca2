@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   dependency_check:
     runs-on: self-hosted
@@ -25,7 +22,7 @@ jobs:
             --failOnCVSS 8            
           
       - name: Upload Test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
            name: Dependency_Check_Report
            path: ${{github.workspace}}/reports

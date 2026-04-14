@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   api_test:
     runs-on: self-hosted
@@ -64,7 +61,7 @@ jobs:
         run: node test/api/run-api-tests.js
 
       - name: Upload API coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: api-coverage
           path: coverage/api/lcov.info
