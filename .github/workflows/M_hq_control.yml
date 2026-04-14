@@ -38,4 +38,12 @@ jobs:
           - api_test
           - integration_test
         secrets: inherit
+
+    monitoring:
+        name: 4_Monitoring
+        uses: ./.github/workflows/4_monitoring.yml
+        needs:
+          - sonarqube
+          - dependency_check
+        secrets: inherit
     

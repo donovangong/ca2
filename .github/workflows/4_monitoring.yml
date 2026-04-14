@@ -1,0 +1,28 @@
+name: 4_monitoring
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  monitoring:
+    runs-on: self-hosted
+
+    steps:
+      - name: Prepare kubeconfig
+        run: |
+          cp /etc/rancher/k3s/k3s.yaml $RUNNER_TEMP/k3s.yaml
+          chmod 600 $RUNNER_TEMP/k3s.yaml
+
+      - name: Install Prometheus and Grafana
+        run: |
+          if ! KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm status monitoring -n monitoring >/dev/null 2>&1; then
+            KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm repo add prometheus-community https://prometheus-community.github.io/helm-charts --force-update
+            KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm repo update
+          fi
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
+
+      - name: Wait for monitoring rollout
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n monitoring rollout status deployment/monitoring-grafana --timeout=180s
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n monitoring rollout status deployment/monitoring-kube-prometheus-operator --timeout=180s
