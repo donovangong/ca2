@@ -49,7 +49,8 @@ jobs:
           PRODUCT_SERVICE_URL: http://127.0.0.1:${{ env.PRODUCT_SERVICE_LOCAL_PORT }}
           ORDER_SERVICE_URL: http://127.0.0.1:${{ env.ORDER_SERVICE_LOCAL_PORT }}
           FRONTEND_URL: http://127.0.0.1:${{ env.FRONTEND_LOCAL_PORT }}
-        run: npm --prefix test run test:integration:coverage
+        run: |
+          npx --prefix test c8 --reporter=lcov --reporter=text --report-dir coverage/integration --include "services/**/*.js" --exclude "**/server.js" node test/integration/run-integration-tests.js
 
       - name: Upload integration coverage
         uses: actions/upload-artifact@v4

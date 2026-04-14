@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "install:services": "npm --prefix ../services/product-service install && npm --prefix ../services/order-service install",
-    "test:functional:coverage": "c8 --reporter=lcov --reporter=text --report-dir ../coverage/functional --include \"../services/frontend/**/*.js\" node functional/run-functional-tests.js",
-    "test:api:coverage": "c8 --reporter=lcov --reporter=text --report-dir ../coverage/api --include \"../services/product-service/**/*.js\" --include \"../services/order-service/**/*.js\" --exclude \"**/server.js\" node api/run-api-coverage-tests.js",
     "test:api:deployed": "node api/run-api-tests.js",
-    "test:integration:coverage": "c8 --reporter=lcov --reporter=text --report-dir ../coverage/integration --include \"../services/**/*.js\" --exclude \"**/server.js\" node integration/run-integration-tests.js"
+    "test:functional:coverage": "echo Run this command from the repository root with npx --prefix test c8",
+    "test:api:coverage": "echo Run this command from the repository root with npx --prefix test c8",
+    "test:integration:coverage": "echo Run this command from the repository root with npx --prefix test c8"
   },
   "devDependencies": {
     "c8": "^10.1.3"

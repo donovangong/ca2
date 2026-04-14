@@ -50,14 +50,15 @@ jobs:
         run: node test/helpers/wait-for-services.js
 
       - name: Run API coverage tests
-        run: npm --prefix test run test:api:coverage
+        run: |
+          npx --prefix test c8 --reporter=lcov --reporter=text --report-dir coverage/api --include "services/product-service/**/*.js" --include "services/order-service/**/*.js" --exclude "**/server.js" node test/api/run-api-coverage-tests.js
 
       - name: Run API tests
         env:
           PRODUCT_SERVICE_URL: http://127.0.0.1:${{ env.PRODUCT_SERVICE_LOCAL_PORT }}
           ORDER_SERVICE_URL: http://127.0.0.1:${{ env.ORDER_SERVICE_LOCAL_PORT }}
           FRONTEND_URL: http://127.0.0.1:${{ env.FRONTEND_LOCAL_PORT }}
-        run: npm --prefix test run test:api:deployed
+        run: node test/api/run-api-tests.js
 
       - name: Upload API coverage
         uses: actions/upload-artifact@v4

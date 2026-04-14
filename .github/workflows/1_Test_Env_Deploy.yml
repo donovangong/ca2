@@ -80,7 +80,8 @@ jobs:
         run: npm --prefix test install
 
       - name: Run functional tests
-        run: npm --prefix test run test:functional:coverage
+        run: |
+          npx --prefix test c8 --reporter=lcov --reporter=text --report-dir coverage/functional --include "services/frontend/**/*.js" node test/functional/run-functional-tests.js
 
       - name: Upload functional coverage
         uses: actions/upload-artifact@v4
