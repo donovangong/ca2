@@ -3,19 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Products</title>
+  <title>Order Inventory | Products</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Order & Inventory</h1>
-  <p>
-    <a href="orders.html">View Orders</a> |
-    <a href="mgmt.html">Management</a>
-  </p>
-  <button id="refresh-products">Refresh Products</button>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Order Inventory System</p>
+        <h1>Products</h1>
+        <p class="page-subtitle">Browse inventory, place orders, and keep stock moving smoothly.</p>
+      </div>
 
-  <div id="message"></div>
-  <div id="products"></div>
+      <nav class="nav-links" aria-label="Primary">
+        <a class="nav-link active" href="index.html">Products</a>
+        <a class="nav-link" href="orders.html">Orders</a>
+        <a class="nav-link" href="mgmt.html">Management</a>
+      </nav>
+    </header>
+
+    <main class="page-content">
+      <section class="toolbar">
+        <div class="toolbar-copy">
+          <h2>Available products</h2>
+          <p>Choose a quantity and place an order directly from the catalog.</p>
+        </div>
+
+        <button id="refresh-products" class="btn btn-secondary" type="button">
+          Refresh
+        </button>
+      </section>
+
+      <div id="message" class="alert" aria-live="polite"></div>
+      <div id="products" class="card-grid"></div>
+    </main>
+  </div>
 
   <script src="shared.js"></script>
   <script src="app.js"></script>
