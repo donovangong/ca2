@@ -64,6 +64,8 @@ function createFakeDocument(initialIds = []) {
           for (const match of buttonMatches) {
             const button = new FakeElement();
             button.dataset.id = match[1];
+            const classMatch = match[0].match(/class="([^"]+)"/);
+            button.className = classMatch ? classMatch[1] : "";
             buttons.push(button);
           }
 
@@ -85,6 +87,12 @@ function createFakeDocument(initialIds = []) {
       if (selector === "button[data-id]") {
         return buttons;
       }
+
+      const classDataIdMatch = selector.match(/^\.([A-Za-z0-9_-]+)\[data-id\]$/);
+      if (classDataIdMatch) {
+        return buttons.filter((button) => button.className.split(/\s+/).includes(classDataIdMatch[1]));
+      }
+
       return [];
     }
   };

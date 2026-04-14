@@ -60,7 +60,7 @@ test("products can be loaded and rendered", async () => {
 
   runFrontendScript("app.js", document, fetchMock);
   await waitFor(
-    () => document.getElementById("products").innerHTML.includes("Stock: 10"),
+    () => document.getElementById("products").innerHTML.includes("Place order"),
     "products should render stock information"
   );
 
@@ -69,7 +69,8 @@ test("products can be loaded and rendered", async () => {
   assert.deepStrictEqual(fetchCalls, ["/api/products"]);
   assert.ok(productsHtml.includes("Keyboard"));
   assert.ok(productsHtml.includes("Mouse"));
-  assert.ok(productsHtml.includes("Stock: 10"));
+  assert.ok(productsHtml.includes("Stock"));
+  assert.ok(productsHtml.includes("<strong>10</strong>"));
 });
 
 test("orders can be loaded and rendered", async () => {
@@ -145,14 +146,14 @@ test("management update flow sends a PUT request with admin headers", async () =
   runFrontendScript("mgmt.js", document, fetchMock);
   await document.getElementById("login-button").click();
   await waitFor(
-    () => document.buttons.some((button) => button.dataset.id === "1" && button.listeners.click),
+    () => document.buttons.some((button) => button.className.includes("save-btn") && button.dataset.id === "1" && button.listeners.click),
     "management page should render a clickable save button"
   );
 
   document.getElementById("price-1").value = "59.99";
   document.getElementById("stock-1").value = "15";
 
-  const saveButton = document.buttons.find((button) => button.dataset.id === "1");
+  const saveButton = document.buttons.find((button) => button.className.includes("save-btn") && button.dataset.id === "1");
   assert.ok(saveButton, "management page should render a save button for product 1");
 
   await saveButton.click();
