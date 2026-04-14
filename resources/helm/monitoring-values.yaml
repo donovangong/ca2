@@ -1,4 +1,6 @@
 grafana:
+  adminUser: admin
+  adminPassword: admin
   defaultDashboardsEnabled: true
   dashboardProviders:
     dashboardproviders.yaml:
