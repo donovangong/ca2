@@ -1,2 +1,0 @@
--- Deprecated placeholder. Real backups are committed as resources/backup/backup-YYYYMMDD-HHMMSS.sql.
--- R_Recovery_Database requires one of those backup-*.sql files as input.
