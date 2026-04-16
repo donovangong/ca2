@@ -1,2 +1,2 @@
--- Place a PostgreSQL backup dump here before running R_Recovery_Database.
--- The production deployment workflow also generates this file and uploads it as the database-backup artifact.
+-- Deprecated placeholder. Real backups are committed as resources/backup/backup-YYYYMMDD-HHMMSS.sql.
+-- R_Recovery_Database requires one of those backup-*.sql files as input.

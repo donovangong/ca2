@@ -14,6 +14,9 @@ on:
         type: string
         default: latest
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
     runs-on: self-hosted
@@ -32,18 +35,24 @@ jobs:
           mkdir -p resources/backup
           if KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 get deployment/postgres >/dev/null 2>&1; then
             POSTGRES_POD=$(KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 get pod -l app=postgres -o jsonpath='{.items[0].metadata.name}')
-            KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 exec "$POSTGRES_POD" -- pg_dump --clean --if-exists -U postgres -d orders_db > resources/backup/latest-backup.sql
+            BACKUP_FILE="resources/backup/backup-$(date -u +%Y%m%d-%H%M%S).sql"
+            KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 exec "$POSTGRES_POD" -- pg_dump --clean --if-exists -U postgres -d orders_db > "$BACKUP_FILE"
+            rm -f resources/backup/latest-backup.sql
+            ls -1t resources/backup/backup-*.sql | tail -n +6 | xargs -r rm
             echo "BACKUP_CREATED=true" >> "$GITHUB_ENV"
+            echo "BACKUP_FILE=$BACKUP_FILE" >> "$GITHUB_ENV"
           else
             echo "No existing ca2 PostgreSQL deployment found. Skipping database backup."
           fi
 
-      - name: Upload database backup
+      - name: Commit database backup
         if: env.BACKUP_CREATED == 'true'
-        uses: actions/upload-artifact@v7
-        with:
-          name: database-backup
-          path: resources/backup/latest-backup.sql
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add resources/backup
+          git commit -m "Backup database before production deploy" || exit 0
+          git push
 
       - name: Clean Kubernetes resources
         run: |

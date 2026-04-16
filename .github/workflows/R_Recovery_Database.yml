@@ -2,6 +2,11 @@ name: R_Recovery_Database
 
 on:
   workflow_dispatch:
+    inputs:
+      backup_file:
+        description: Backup SQL path under resources/backup
+        required: true
+        default: resources/backup/backup.sql
 
 jobs:
   recovery_database:
@@ -17,14 +22,21 @@ jobs:
           chmod 600 $RUNNER_TEMP/k3s.yaml
 
       - name: Validate backup file
+        env:
+          BACKUP_FILE: ${{ inputs.backup_file }}
         run: |
-          test -s resources/backup/latest-backup.sql
-          if grep -q "Place a PostgreSQL backup dump here" resources/backup/latest-backup.sql; then
-            echo "resources/backup/latest-backup.sql still contains the placeholder backup."
-            exit 1
-          fi
+          case "$BACKUP_FILE" in
+            resources/backup/backup-*.sql) ;;
+            *)
+              echo "Backup file must match resources/backup/backup-*.sql"
+              exit 1
+              ;;
+          esac
+          test -s "$BACKUP_FILE"
 
       - name: Restore database
+        env:
+          BACKUP_FILE: ${{ inputs.backup_file }}
         run: |
           POSTGRES_POD=$(KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 get pod -l app=postgres -o jsonpath='{.items[0].metadata.name}')
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 exec -i "$POSTGRES_POD" -- psql -U postgres -d orders_db < resources/backup/latest-backup.sql
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 exec -i "$POSTGRES_POD" -- psql -U postgres -d orders_db < "$BACKUP_FILE"
