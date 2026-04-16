@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: product-service
-          image: ca2-product-service:latest
+          image: {{ .Values.images.productService | default "ca2-product-service:latest" }}
           imagePullPolicy: Never
           ports:
             - containerPort: 3001

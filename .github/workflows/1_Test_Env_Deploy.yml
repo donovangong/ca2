@@ -3,6 +3,10 @@ name: 1_Test_Env_Deploy
 on:
   workflow_dispatch:
   workflow_call:
+    outputs:
+      image_tag:
+        description: Image tag built by the test deployment workflow
+        value: ${{ jobs.build.outputs.image_tag }}
 
 env:
   DOCKER_BUILDKIT: 1
@@ -10,32 +14,37 @@ env:
 jobs:
   build:
     runs-on: self-hosted
+    outputs:
+      image_tag: ${{ steps.image_tag.outputs.image_tag }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Set image tag
+        id: image_tag
+        run: echo "image_tag=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
+
       - name: Build Docker images
+        env:
+          IMAGE_TAG: ${{ steps.image_tag.outputs.image_tag }}
         run: |
-          docker build -t ca2-frontend:latest ./services/frontend
-          docker build -t ca2-product-service:latest ./services/product-service
-          docker build -t ca2-order-service:latest ./services/order-service
+          docker build -t ca2-frontend:$IMAGE_TAG -t ca2-frontend:latest ./services/frontend
+          docker build -t ca2-product-service:$IMAGE_TAG -t ca2-product-service:latest ./services/product-service
+          docker build -t ca2-order-service:$IMAGE_TAG -t ca2-order-service:latest ./services/order-service
 
       - name: Import images into k3s
+        env:
+          IMAGE_TAG: ${{ steps.image_tag.outputs.image_tag }}
         run: |
-          docker save ca2-frontend:latest | /usr/local/bin/k3s ctr images import -
-          docker save ca2-product-service:latest | /usr/local/bin/k3s ctr images import -
-          docker save ca2-order-service:latest | /usr/local/bin/k3s ctr images import -
+          docker save ca2-frontend:$IMAGE_TAG | /usr/local/bin/k3s ctr images import -
+          docker save ca2-product-service:$IMAGE_TAG | /usr/local/bin/k3s ctr images import -
+          docker save ca2-order-service:$IMAGE_TAG | /usr/local/bin/k3s ctr images import -
 
       - name: Prepare kubeconfig
         run: |
           cp /etc/rancher/k3s/k3s.yaml $RUNNER_TEMP/k3s.yaml
           chmod 600 $RUNNER_TEMP/k3s.yaml
-
-      - name: Clean Kubernetes resources
-        run: |
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl delete namespace ca2 || true
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl wait --for=delete namespace/ca2 --timeout=60s || true
 
       - name: Install KEDA
         run: |
@@ -49,8 +58,11 @@ jobs:
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n keda rollout status deployment/keda-admission-webhooks --timeout=120s
 
       - name: Deploy with Helm
+        env:
+          IMAGE_TAG: ${{ steps.image_tag.outputs.image_tag }}
         run: |
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install ca2 ./resources/helm/ca2 -n ca2 --create-namespace
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install ca2 ./resources/helm/ca2 -n ca2 --create-namespace --atomic --cleanup-on-fail --timeout=180s --set-string images.frontend=ca2-frontend:$IMAGE_TAG --set-string images.productService=ca2-product-service:$IMAGE_TAG --set-string images.orderService=ca2-order-service:$IMAGE_TAG
+          echo "HELM_DEPLOYED=true" >> "$GITHUB_ENV"
 
       - name: Restart application deployments
         run: |
@@ -82,3 +94,12 @@ jobs:
         with:
           name: functional-coverage
           path: coverage/functional/lcov.info
+
+      - name: Rollback test deployment on failure
+        if: failure() && env.HELM_DEPLOYED == 'true'
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm rollback ca2 -n ca2 || true
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/postgres --timeout=180s || true
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/product-service --timeout=180s || true
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/order-service --timeout=180s || true
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/frontend --timeout=180s || true

@@ -50,6 +50,34 @@ jobs:
     pro_env_deploy:
         name: 5_Pro_Env_Deploy
         uses: ./.github/workflows/5_Pro_Env_Deploy.yml
-        needs: monitoring
+        needs:
+          - build_deploy
+          - monitoring
+        with:
+          image_tag: ${{ needs.build_deploy.outputs.image_tag }}
         secrets: inherit
+
+    rollback_test_env:
+        name: Rollback_Test_Env
+        runs-on: self-hosted
+        needs:
+          - build_deploy
+          - api_test
+          - integration_test
+          - sonarqube
+          - dependency_check
+        if: always() && needs.build_deploy.result == 'success' && contains(needs.*.result, 'failure')
+        steps:
+          - name: Prepare kubeconfig
+            run: |
+              cp /etc/rancher/k3s/k3s.yaml $RUNNER_TEMP/k3s.yaml
+              chmod 600 $RUNNER_TEMP/k3s.yaml
+
+          - name: Rollback Helm release
+            run: |
+              KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm rollback ca2 -n ca2 || true
+              KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/postgres --timeout=180s || true
+              KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/product-service --timeout=180s || true
+              KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/order-service --timeout=180s || true
+              KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/frontend --timeout=180s || true
     

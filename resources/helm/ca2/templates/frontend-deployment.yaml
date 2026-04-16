@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ca2-frontend:latest
+          image: {{ .Values.images.frontend | default "ca2-frontend:latest" }}
           imagePullPolicy: Never
           ports:
             - containerPort: 80

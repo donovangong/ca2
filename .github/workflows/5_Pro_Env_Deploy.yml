@@ -2,7 +2,17 @@ name: 5_Pro_Env_Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Image tag to deploy
+        required: false
+        default: latest
   workflow_call:
+    inputs:
+      image_tag:
+        required: false
+        type: string
+        default: latest
 
 jobs:
   deploy:
@@ -34,8 +44,10 @@ jobs:
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n keda rollout status deployment/keda-admission-webhooks --timeout=120s
 
       - name: Deploy with Helm
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
         run: |
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install ca2 ./resources/helm/ca2 -n ca2 --create-namespace
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install ca2 ./resources/helm/ca2 -n ca2 --create-namespace --set-string images.frontend=ca2-frontend:$IMAGE_TAG --set-string images.productService=ca2-product-service:$IMAGE_TAG --set-string images.orderService=ca2-order-service:$IMAGE_TAG
 
       - name: Wait for application rollout
         run: |

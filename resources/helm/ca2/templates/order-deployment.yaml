@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: order-service
-          image: ca2-order-service:latest
+          image: {{ .Values.images.orderService | default "ca2-order-service:latest" }}
           imagePullPolicy: Never
           ports:
             - containerPort: 3002
