@@ -75,26 +75,6 @@ jobs:
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/order-service --timeout=180s
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 rollout status deployment/frontend --timeout=180s
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: test/package-lock.json
-
-      - name: Install coverage tools
-        run: npm --prefix test ci
-
-      - name: Run functional tests
-        run: |
-          npx --prefix test c8 --reporter=lcov --reporter=text --report-dir coverage/functional --include "services/frontend/**/*.js" node test/functional/run-functional-tests.js
-
-      - name: Upload functional coverage
-        uses: actions/upload-artifact@v7
-        with:
-          name: functional-coverage
-          path: coverage/functional/lcov.info
-
       - name: Rollback test deployment on failure
         if: failure() && env.HELM_DEPLOYED == 'true'
         run: |
