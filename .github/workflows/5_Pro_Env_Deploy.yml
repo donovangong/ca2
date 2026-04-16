@@ -27,6 +27,24 @@ jobs:
           cp /etc/rancher/k3s/k3s.yaml $RUNNER_TEMP/k3s.yaml
           chmod 600 $RUNNER_TEMP/k3s.yaml
 
+      - name: Backup database
+        run: |
+          mkdir -p resources/backup
+          if KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 get deployment/postgres >/dev/null 2>&1; then
+            POSTGRES_POD=$(KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 get pod -l app=postgres -o jsonpath='{.items[0].metadata.name}')
+            KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n ca2 exec "$POSTGRES_POD" -- pg_dump --clean --if-exists -U postgres -d orders_db > resources/backup/latest-backup.sql
+            echo "BACKUP_CREATED=true" >> "$GITHUB_ENV"
+          else
+            echo "No existing ca2 PostgreSQL deployment found. Skipping database backup."
+          fi
+
+      - name: Upload database backup
+        if: env.BACKUP_CREATED == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: database-backup
+          path: resources/backup/latest-backup.sql
+
       - name: Clean Kubernetes resources
         run: |
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl delete namespace ca2 || true
