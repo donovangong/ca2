@@ -64,7 +64,6 @@ jobs:
         needs:
           - sonarqube
           - dependency_check
-          - trivy_project_scan
         secrets: inherit
 
     monitor_falco:
@@ -73,14 +72,12 @@ jobs:
         needs:
           - sonarqube
           - dependency_check
-          - trivy_project_scan
         secrets: inherit
 
     pro_env_deploy:
         name: 5_Pro_Env_Deploy
         uses: ./.github/workflows/5_Pro_Env_Deploy.yml
         needs:
-          - build_deploy
           - monitor_grafana
           - monitor_falco
         with:
