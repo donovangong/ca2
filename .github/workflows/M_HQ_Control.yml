@@ -29,16 +29,17 @@ jobs:
     integration_test:
         name: 2_Integration_Test
         uses: ./.github/workflows/2_Integration_Test.yml
-        needs: build_deploy
+        needs:
+          - functional_test
+          - api_test
         secrets: inherit
 
     sonarqube:
         name: 3_SonarQube
         uses: ./.github/workflows/3_SonarQube.yml
         needs:
-          - functional_test
-          - api_test
           - integration_test
+          - dependency_check
         secrets: inherit
 
     dependency_check:
@@ -47,15 +48,32 @@ jobs:
         needs:
           - functional_test
           - api_test
-          - integration_test
         secrets: inherit
 
-    monitoring:
-        name: 4_Monitoring
-        uses: ./.github/workflows/4_Monitoring.yml
+    trivy_project_scan:
+        name: 3_Trivy_Project_Scan
+        uses: ./.github/workflows/3_Trivy_Project_Scan.yml
+        needs:
+          - integration_test
+          - dependency_check
+        secrets: inherit
+
+    monitor_grafana:
+        name: 4_Monitor_Grafana
+        uses: ./.github/workflows/4_Monitor_Grafana.yml
         needs:
           - sonarqube
           - dependency_check
+          - trivy_project_scan
+        secrets: inherit
+
+    monitor_falco:
+        name: 4_Monitor_Falco
+        uses: ./.github/workflows/4_Monitor_Falco.yml
+        needs:
+          - sonarqube
+          - dependency_check
+          - trivy_project_scan
         secrets: inherit
 
     pro_env_deploy:
@@ -63,7 +81,8 @@ jobs:
         uses: ./.github/workflows/5_Pro_Env_Deploy.yml
         needs:
           - build_deploy
-          - monitoring
+          - monitor_grafana
+          - monitor_falco
         with:
           image_tag: ${{ needs.build_deploy.outputs.image_tag }}
         secrets: inherit
@@ -78,6 +97,7 @@ jobs:
           - integration_test
           - sonarqube
           - dependency_check
+          - trivy_project_scan
         if: always() && needs.build_deploy.result == 'success' && contains(needs.*.result, 'failure')
         steps:
           - name: Prepare kubeconfig

@@ -1,0 +1,28 @@
+name: 4_Monitor_Falco
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  monitor_falco:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Prepare kubeconfig
+        run: |
+          cp /etc/rancher/k3s/k3s.yaml $RUNNER_TEMP/k3s.yaml
+          chmod 600 $RUNNER_TEMP/k3s.yaml
+
+      - name: Install Falco runtime security monitoring
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm repo add falcosecurity https://falcosecurity.github.io/charts --force-update
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm repo update
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install falco falcosecurity/falco -n falco --create-namespace -f resources/falco/falco-values.yaml
+
+      - name: Wait for Falco rollout
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n falco rollout status daemonset/falco --timeout=180s

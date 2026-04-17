@@ -1,11 +1,11 @@
-name: 4_Monitoring
+name: 4_Monitor_Grafana
 
 on:
   workflow_dispatch:
   workflow_call:
 
 jobs:
-  monitoring:
+  monitor_grafana:
     runs-on: self-hosted
 
     steps:
@@ -30,7 +30,7 @@ jobs:
           fi
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace -f resources/helm/monitoring-values.yaml
 
-      - name: Wait for monitoring rollout
+      - name: Wait for Grafana rollout
         run: |
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n monitoring rollout status deployment/monitoring-grafana --timeout=180s
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n monitoring rollout status deployment/monitoring-kube-prometheus-operator --timeout=180s
@@ -38,13 +38,3 @@ jobs:
       - name: Expose Grafana with NodePort
         run: |
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n monitoring patch svc monitoring-grafana --type merge -p '{"spec":{"type":"NodePort","ports":[{"name":"http-web","port":80,"protocol":"TCP","targetPort":3000,"nodePort":30300}]}}'
-
-      - name: Install Falco runtime security monitoring
-        run: |
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm repo add falcosecurity https://falcosecurity.github.io/charts --force-update
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm repo update
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml helm upgrade --install falco falcosecurity/falco -n falco --create-namespace -f resources/falco/falco-values.yaml
-
-      - name: Wait for Falco rollout
-        run: |
-          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl -n falco rollout status daemonset/falco --timeout=180s

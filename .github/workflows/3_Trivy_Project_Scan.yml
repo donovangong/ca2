@@ -1,0 +1,23 @@
+name: 3_Trivy_Project_Scan
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  trivy_project_scan:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Trivy scan full project
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '0'
