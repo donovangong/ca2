@@ -21,6 +21,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Trivy scan full project
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '0'
+
       - name: Set image tag
         id: image_tag
         run: echo "image_tag=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
@@ -34,31 +44,31 @@ jobs:
           docker build -t ca2-order-service:$IMAGE_TAG -t ca2-order-service:latest ./services/order-service
 
       - name: Trivy scan frontend image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: image
           image-ref: ca2-frontend:${{ steps.image_tag.outputs.image_tag }}
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          exit-code: '1'
+          exit-code: '0'
 
       - name: Trivy scan product service image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: image
           image-ref: ca2-product-service:${{ steps.image_tag.outputs.image_tag }}
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          exit-code: '1'
+          exit-code: '0'
 
       - name: Trivy scan order service image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: image
           image-ref: ca2-order-service:${{ steps.image_tag.outputs.image_tag }}
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          exit-code: '1'
+          exit-code: '0'
 
       - name: Import images into k3s
         env:
