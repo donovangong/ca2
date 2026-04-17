@@ -13,12 +13,18 @@ spec:
       labels:
         app: product-service
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: product-service
           image: {{ .Values.images.productService | default "ca2-product-service:latest" }}
           imagePullPolicy: Never
           ports:
             - containerPort: 3001
+          securityContext:
+            allowPrivilegeEscalation: false
           resources:
             requests:
               cpu: 100m

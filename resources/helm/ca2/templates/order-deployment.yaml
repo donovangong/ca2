@@ -13,12 +13,18 @@ spec:
       labels:
         app: order-service
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: order-service
           image: {{ .Values.images.orderService | default "ca2-order-service:latest" }}
           imagePullPolicy: Never
           ports:
             - containerPort: 3002
+          securityContext:
+            allowPrivilegeEscalation: false
           resources:
             requests:
               cpu: 100m

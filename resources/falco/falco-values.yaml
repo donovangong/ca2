@@ -1,0 +1,32 @@
+tty: true
+
+driver:
+  enabled: true
+  kind: modern_ebpf
+
+collectors:
+  enabled: true
+  containerEngine:
+    enabled: true
+  kubernetes:
+    enabled: true
+
+falco:
+  json_output: true
+  log_stderr: true
+  log_level: info
+
+falcoctl:
+  artifact:
+    install:
+      enabled: true
+    follow:
+      enabled: true
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 300m
+    memory: 512Mi
