@@ -19,7 +19,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: product-service
-          image: {{ .Values.images.productService | default "ca2-product-service:latest" }}
+          image: {{ .Values.images.productService | default "ca2-product-service:latest" | quote }}
           imagePullPolicy: Never
           ports:
             - containerPort: 3001

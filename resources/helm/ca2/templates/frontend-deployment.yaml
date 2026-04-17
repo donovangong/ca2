@@ -19,7 +19,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: frontend
-          image: {{ .Values.images.frontend | default "ca2-frontend:latest" }}
+          image: {{ .Values.images.frontend | default "ca2-frontend:latest" | quote }}
           imagePullPolicy: Never
           ports:
             - containerPort: 80
