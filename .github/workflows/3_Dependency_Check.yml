@@ -16,11 +16,13 @@ jobs:
         id: Depcheck
         with:
           project: 'ca2-order-inventory'
-          path: 'services/product-service/package-lock.json'
+          path: 'services/product-service'
           format: 'HTML'
           args: >
-            --scan services/order-service/package-lock.json
-            --scan test/package-lock.json
+            --scan services/order-service
+            --scan test
+            --exclude **/*.js
+            --enableExperimental
             --failOnCVSS 8
           
       - name: Upload Test results
