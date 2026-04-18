@@ -11,22 +11,119 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Depcheck
-        uses: dependency-check/Dependency-Check_Action@main
-        id: Depcheck
-        with:
-          project: 'ca2-order-inventory'
-          path: 'services/product-service'
-          format: 'HTML'
-          args: >
-            --scan services/order-service
-            --scan test
-            --exclude **/*.js
-            --enableExperimental
-            --failOnCVSS 8
-          
-      - name: Upload Test results
+      - name: Generate npm audit reports
+        run: |
+          mkdir -p reports
+
+          npm --prefix services/product-service audit --package-lock-only --json > reports/product-service-audit.json || true
+          npm --prefix services/order-service audit --package-lock-only --json > reports/order-service-audit.json || true
+          npm --prefix test audit --package-lock-only --json > reports/test-audit.json || true
+
+          node - <<'NODE'
+          const fs = require("fs");
+          const reports = [
+            ["Product Service", "reports/product-service-audit.json"],
+            ["Order Service", "reports/order-service-audit.json"],
+            ["Test Suite", "reports/test-audit.json"]
+          ];
+
+          const escapeHtml = (value) => String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+
+          const rows = [];
+          let highOrCritical = 0;
+
+          for (const [project, file] of reports) {
+            const data = JSON.parse(fs.readFileSync(file, "utf8"));
+            const metadata = data.metadata || {};
+            const vulnerabilities = data.vulnerabilities || {};
+            const totalDependencies = metadata.dependencies?.total || 0;
+            const counts = metadata.vulnerabilities || {};
+
+            highOrCritical += (counts.high || 0) + (counts.critical || 0);
+
+            for (const vulnerability of Object.values(vulnerabilities)) {
+              const via = Array.isArray(vulnerability.via)
+                ? vulnerability.via.map((item) => typeof item === "string" ? item : item.title).join(", ")
+                : "";
+
+              rows.push(`
+                <tr>
+                  <td>${escapeHtml(project)}</td>
+                  <td>${escapeHtml(vulnerability.name)}</td>
+                  <td>${escapeHtml(vulnerability.severity)}</td>
+                  <td>${escapeHtml(vulnerability.range || "")}</td>
+                  <td>${escapeHtml(vulnerability.fixAvailable ? "Yes" : "No")}</td>
+                  <td>${escapeHtml(via)}</td>
+                </tr>
+              `);
+            }
+
+            rows.unshift(`
+              <tr class="summary">
+                <td>${escapeHtml(project)}</td>
+                <td colspan="5">
+                  Dependencies: ${totalDependencies},
+                  Low: ${counts.low || 0},
+                  Moderate: ${counts.moderate || 0},
+                  High: ${counts.high || 0},
+                  Critical: ${counts.critical || 0}
+                </td>
+              </tr>
+            `);
+          }
+
+          const html = `<!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <title>Dependency Check Report</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 32px; color: #1f2933; }
+              h1 { margin-bottom: 4px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+              th, td { border: 1px solid #d9e2ec; padding: 10px; text-align: left; vertical-align: top; }
+              th { background: #f0f4f8; }
+              .summary td { background: #f8fafc; font-weight: 700; }
+            </style>
+          </head>
+          <body>
+            <h1>Dependency Check Report</h1>
+            <p>Generated from npm audit against package-lock.json files.</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Dependency</th>
+                  <th>Severity</th>
+                  <th>Range</th>
+                  <th>Fix Available</th>
+                  <th>Via</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.join("\n") || "<tr><td colspan=\"6\">No vulnerabilities found.</td></tr>"}
+              </tbody>
+            </table>
+          </body>
+          </html>`;
+
+          fs.writeFileSync("reports/dependency-check-report.html", html);
+
+          if (highOrCritical > 0) {
+            process.exitCode = 1;
+          }
+          NODE
+
+          rm -f reports/product-service-audit.json reports/order-service-audit.json reports/test-audit.json
+
+      - name: Upload Dependency Check report
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-           name: Dependency_Check_Report
-           path: ${{github.workspace}}/reports
+          name: Dependency_Check_Report
+          path: reports/dependency-check-report.html
