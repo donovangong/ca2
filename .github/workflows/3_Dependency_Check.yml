@@ -21,7 +21,6 @@ jobs:
           args: >
             --scan services/order-service/package-lock.json
             --scan test/package-lock.json
-            --nodeAuditAnalyzerEnabled
             --failOnCVSS 8
           
       - name: Upload Test results
