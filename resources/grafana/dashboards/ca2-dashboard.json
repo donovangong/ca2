@@ -1,7 +1,7 @@
 {
   "uid": "ca2-application-monitoring",
   "title": "CA2 Application Monitoring",
-  "tags": ["ca2", "kubernetes", "prometheus"],
+  "tags": ["ca2", "kubernetes", "prometheus", "loki", "logs"],
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,
@@ -241,6 +241,106 @@
         "tooltip": {
           "mode": "multi"
         }
+      }
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "Application Logs",
+      "gridPos": { "x": 0, "y": 20, "w": 24, "h": 1 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 9,
+      "type": "logs",
+      "title": "All CA2 Logs",
+      "gridPos": { "x": 0, "y": 21, "w": 24, "h": 8 },
+      "datasource": { "type": "loki", "uid": "Loki" },
+      "targets": [
+        {
+          "expr": "{namespace=\"$namespace\"}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      }
+    },
+    {
+      "id": 10,
+      "type": "logs",
+      "title": "Order Service Logs",
+      "gridPos": { "x": 0, "y": 29, "w": 12, "h": 8 },
+      "datasource": { "type": "loki", "uid": "Loki" },
+      "targets": [
+        {
+          "expr": "{namespace=\"$namespace\", app=\"order-service\"}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      }
+    },
+    {
+      "id": 11,
+      "type": "logs",
+      "title": "Product Service Logs",
+      "gridPos": { "x": 12, "y": 29, "w": 12, "h": 8 },
+      "datasource": { "type": "loki", "uid": "Loki" },
+      "targets": [
+        {
+          "expr": "{namespace=\"$namespace\", app=\"product-service\"}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      }
+    },
+    {
+      "id": 12,
+      "type": "logs",
+      "title": "Error Logs",
+      "gridPos": { "x": 0, "y": 37, "w": 24, "h": 8 },
+      "datasource": { "type": "loki", "uid": "Loki" },
+      "targets": [
+        {
+          "expr": "{namespace=\"$namespace\"} |= \"error\"",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
       }
     }
   ]
