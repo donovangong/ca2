@@ -42,6 +42,8 @@ test("product reads cover list, detail, not found, and failures", async () => {
 
   await expect([{ rows: [product] }], { path: "/products" }, 200, [product]);
   await expect([{ rows: [product] }], { path: "/api/products/1" }, 200, product);
+  await expect([], { path: "/products/not-a-number" }, 400, { error: "Valid product id is required" });
+  await expect([], { path: "/products/0" }, 400, { error: "Valid product id is required" });
   await expect([{ rows: [] }], { path: "/products/999" }, 404, { error: "Product not found" });
   await expect([new Error("list failed")], { path: "/api/products" }, 500, { error: "Failed to fetch products" });
   await expect([new Error("detail failed")], { path: "/products/1" }, 500, { error: "Failed to fetch product" });
@@ -62,7 +64,40 @@ test("product update covers auth, validation, success, not found, and failure", 
 
   await expect([], {
     path: "/products/1",
+    options: {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "x-admin-user": "admin",
+        "x-admin-password": "wrong"
+      },
+      body: update.body
+    }
+  }, 401, { error: "Invalid username or password" });
+
+  await expect([], {
+    path: "/products/nope",
+    options: update
+  }, 400, { error: "Valid product id is required" });
+
+  await expect([], {
+    path: "/products/0",
+    options: update
+  }, 400, { error: "Valid product id is required" });
+
+  await expect([], {
+    path: "/products/1",
     options: { ...update, body: JSON.stringify({ price: -1, stock: 12 }) }
+  }, 400, { error: "Valid price and stock are required" });
+
+  await expect([], {
+    path: "/products/1",
+    options: { ...update, body: JSON.stringify({ price: 10 }) }
+  }, 400, { error: "Valid price and stock are required" });
+
+  await expect([], {
+    path: "/products/1",
+    options: { ...update, body: JSON.stringify({ price: 10, stock: -1 }) }
   }, 400, { error: "Valid price and stock are required" });
 
   await expect([{ rows: [product] }], { path: "/api/products/1", options: update }, 200, product);

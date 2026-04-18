@@ -40,6 +40,21 @@ async function expect(options, req, expectedStatus, expectedBody) {
   });
 }
 
+test("order app requires a product service URL", () => {
+  const originalUrl = process.env.PRODUCT_SERVICE_URL;
+  delete process.env.PRODUCT_SERVICE_URL;
+
+  try {
+    assert.throws(() => createApp({ pool: queuedPool(), fetch: async () => jsonResponse(200, {}) }), {
+      message: "PRODUCT_SERVICE_URL is required"
+    });
+  } finally {
+    if (originalUrl !== undefined) {
+      process.env.PRODUCT_SERVICE_URL = originalUrl;
+    }
+  }
+});
+
 test("order health and reads cover success, missing rows, and database failures", async () => {
   const order = { id: 1, product_id: 1, quantity: 2, total_price: "99.98" };
 
@@ -50,6 +65,10 @@ test("order health and reads cover success, missing rows, and database failures"
   await expect({ pool: queuedPool([new Error("db down")]) }, { path: "/health" }, 500, { status: "error" });
   await expect({ pool: queuedPool([{ rows: [order] }]) }, { path: "/orders" }, 200, [order]);
   await expect({ pool: queuedPool([{ rows: [order] }]) }, { path: "/api/orders/1" }, 200, order);
+  await expect({ pool: queuedPool() }, { path: "/orders/not-a-number" }, 400, {
+    error: "Valid order id is required"
+  });
+  await expect({ pool: queuedPool() }, { path: "/orders/0" }, 400, { error: "Valid order id is required" });
   await expect({ pool: queuedPool([{ rows: [] }]) }, { path: "/orders/999" }, 404, { error: "Order not found" });
   await expect({ pool: queuedPool([new Error("list failed")]) }, { path: "/api/orders" }, 500, {
     error: "Failed to fetch orders"
@@ -67,10 +86,22 @@ test("order create covers validation, product lookup, stock, commit, rollback, a
   });
 
   await expect({ pool: queuedPool() }, { path: "/orders", options: body({ product_id: 1, quantity: 0 }) }, 400);
+  await expect({ pool: queuedPool() }, { path: "/orders", options: body({ product_id: "bad", quantity: 1 }) }, 400, {
+    error: "product_id and valid quantity are required"
+  });
+  await expect({ pool: queuedPool() }, { path: "/orders", options: body({ product_id: 1, quantity: "bad" }) }, 400, {
+    error: "product_id and valid quantity are required"
+  });
   await expect({
     pool: queuedPool(),
     fetch: async () => jsonResponse(404, { error: "Product not found" })
   }, { path: "/api/orders", options: body({ product_id: 999, quantity: 1 }) }, 404, { error: "Product not found" });
+  await expect({
+    pool: queuedPool(),
+    fetch: async () => jsonResponse(503, {})
+  }, { path: "/api/orders", options: body({ product_id: 999, quantity: 1 }) }, 503, {
+    error: "Product lookup failed"
+  });
   await expect({
     pool: queuedPool(),
     fetch: async () => jsonResponse(200, { id: 1, price: 10, stock: 1 })
@@ -105,6 +136,18 @@ test("order delete covers auth, success, not found, and database failure", async
   await expect({ pool: queuedPool() }, { path: "/orders/1", options: { method: "DELETE" } }, 401, {
     error: "Invalid username or password"
   });
+  await expect({ pool: queuedPool() }, {
+    path: "/orders/1",
+    options: { method: "DELETE", headers: { "x-admin-user": "admin", "x-admin-password": "wrong" } }
+  }, 401, { error: "Invalid username or password" });
+  await expect({ pool: queuedPool() }, {
+    path: "/orders/nope",
+    options: { method: "DELETE", headers: adminHeaders }
+  }, 400, { error: "Valid order id is required" });
+  await expect({ pool: queuedPool() }, {
+    path: "/orders/0",
+    options: { method: "DELETE", headers: adminHeaders }
+  }, 400, { error: "Valid order id is required" });
   await expect({ pool: queuedPool([{ rows: [{ id: 1 }] }]) }, {
     path: "/api/orders/1",
     options: { method: "DELETE", headers: adminHeaders }
