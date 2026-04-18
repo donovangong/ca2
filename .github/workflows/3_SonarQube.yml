@@ -34,9 +34,9 @@ jobs:
             "-Dsonar.projectVersion=1.0" \
             "-Dsonar.sources=services,resources" \
             "-Dsonar.tests=test" \
-            "-Dsonar.exclusions=**/node_modules/**,**/.git/**,**/coverage/**,**/dist/**,**/build/**" \
+            "-Dsonar.exclusions=**/node_modules/**,**/.git/**,**/coverage/**,**/dist/**,**/build/**,resources/backup/**" \
             "-Dsonar.test.inclusions=test/**/*.test.js" \
-            "-Dsonar.cpd.exclusions=test/**,services/product-service/app.js,services/order-service/app.js" \
+            "-Dsonar.cpd.exclusions=test/**,services/product-service/app.js,services/order-service/app.js,resources/backup/**" \
             "-Dsonar.javascript.lcov.reportPaths=coverage/functional-coverage/lcov.info,coverage/api-coverage/lcov.info,coverage/integration-coverage/lcov.info" \
             "-Dsonar.coverage.exclusions=**/server.js,resources/**,test/**" \
             "-Dsonar.sourceEncoding=UTF-8"
