@@ -13,7 +13,9 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Prepare Trivy cache
-        run: mkdir -p ~/.cache/trivy
+        run: |
+          mkdir -p ~/.cache/trivy
+          mkdir -p trivy-reports
 
       - name: Trivy scan full project
         uses: aquasecurity/trivy-action@master
@@ -24,4 +26,13 @@ jobs:
           scanners: vuln,secret,misconfig
           severity: HIGH,CRITICAL
           ignore-unfixed: true
+          format: table
+          output: trivy-reports/project-scan.txt
           exit-code: '0'
+
+      - name: Upload Trivy project report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-project-report
+          path: trivy-reports/project-scan.txt
+          if-no-files-found: error

@@ -34,7 +34,9 @@ jobs:
           docker build -t ca2-order-service:$IMAGE_TAG -t ca2-order-service:latest ./services/order-service
 
       - name: Prepare Trivy cache
-        run: mkdir -p ~/.cache/trivy
+        run: |
+          mkdir -p ~/.cache/trivy
+          mkdir -p trivy-reports
 
       - name: Trivy scan frontend image
         uses: aquasecurity/trivy-action@master
@@ -45,6 +47,8 @@ jobs:
           scanners: vuln
           severity: HIGH,CRITICAL
           ignore-unfixed: true
+          format: table
+          output: trivy-reports/frontend-image.txt
           exit-code: '0'
 
       - name: Trivy scan product service image
@@ -56,6 +60,8 @@ jobs:
           scanners: vuln
           severity: HIGH,CRITICAL
           ignore-unfixed: true
+          format: table
+          output: trivy-reports/product-service-image.txt
           exit-code: '0'
 
       - name: Trivy scan order service image
@@ -67,7 +73,16 @@ jobs:
           scanners: vuln
           severity: HIGH,CRITICAL
           ignore-unfixed: true
+          format: table
+          output: trivy-reports/order-service-image.txt
           exit-code: '0'
+
+      - name: Upload Trivy image reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-image-reports
+          path: trivy-reports/*.txt
+          if-no-files-found: error
 
       - name: Import images into k3s
         env:
