@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict Ei3VJwaG9od5cW4PXCVSDIB3ldpx1lJmkx8ZL2ndKIJ3XcvOHquLPUxdfBV2091
+\restrict F4vjrqvdm1E9Mx2amvDzimhkSKsLREsefrcnEccUia4hMDKZsx9s97dw7XF9YzJ
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Debian 15.17-1.pgdg13+1)
@@ -131,8 +131,8 @@ COPY public.orders (id, product_id, quantity, total_price, created_at) FROM stdi
 
 COPY public.products (id, name, price, stock) FROM stdin;
 2	Mouse	19.99	20
-3	Monitor	149.99	5
 1	Keyboard	49.99	10
+3	Monitor	149.99	5
 \.
 
 
@@ -170,5 +170,5 @@ ALTER TABLE ONLY public.products
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Ei3VJwaG9od5cW4PXCVSDIB3ldpx1lJmkx8ZL2ndKIJ3XcvOHquLPUxdfBV2091
+\unrestrict F4vjrqvdm1E9Mx2amvDzimhkSKsLREsefrcnEccUia4hMDKZsx9s97dw7XF9YzJ
 
