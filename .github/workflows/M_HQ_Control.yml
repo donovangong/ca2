@@ -74,14 +74,6 @@ jobs:
           - dependency_check
         secrets: inherit
 
-    monitor_logs:
-        name: 4_Monitor_Logs
-        uses: ./.github/workflows/4_Monitor_Logs.yml
-        needs:
-          - sonarqube
-          - dependency_check
-        secrets: inherit
-
     pro_env_deploy:
         name: 5_Pro_Env_Deploy
         uses: ./.github/workflows/5_Pro_Env_Deploy.yml
@@ -89,7 +81,6 @@ jobs:
           - build_deploy
           - monitor_grafana
           - monitor_falco
-          - monitor_logs
         with:
           image_tag: ${{ needs.build_deploy.outputs.image_tag }}
         secrets: inherit
