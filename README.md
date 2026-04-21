@@ -19,13 +19,46 @@ The system includes a static frontend, a product service, an order service, and 
 - Product inventory and stock management
 - Customer order creation and history tracking
 - Kubernetes-based deployment with Helm
+- Kubernetes Ingress for external traffic routing
 - Autoscaling with KEDA
 - Monitoring with Prometheus and Grafana
+- Centralized log aggregation with Loki and Promtail
+- Runtime security monitoring with Falco
 - CI/CD with GitHub Actions
+- Vulnerability, secret, and misconfiguration scanning with Trivy
+- Dependency vulnerability analysis with OWASP Dependency-Check
 - Code quality analysis with SonarCloud
 
 ## Deployment
-The application runs on k3s and is deployed through the Helm chart under `resources/helm/ca2`.
+The application runs on k3s and is deployed through the Helm chart under `resources/helm/ca2`. The deployment is managed as Infrastructure as Code (IaC), with Kubernetes manifests, Helm templates, Ingress routing, autoscaling, monitoring, and security components versioned in the repository.
 
 ## Pipeline
-The pipeline builds images, deploys a test environment, runs functional/API/integration tests, performs dependency and quality checks, provisions monitoring, and completes the final deployment.
+- Runs on a self-hosted GitHub Actions runner
+- Uses a central control workflow for pipeline orchestration
+- Builds container images and deploys the test environment
+- Runs functional, API, and integration tests
+- Performs Trivy project scanning for vulnerabilities, secrets, and misconfigurations
+- Runs OWASP Dependency-Check and SonarCloud quality checks
+- Provisions Falco runtime security monitoring and Loki/Grafana observability
+- Completes the final production deployment
+- Uses reusable workflow stages to reduce repeated setup work and speed up delivery
+
+## Highlights
+
+### Centralized Workflow Controller
+The `M_HQ_Control` workflow orchestrates all individual pipeline stages through reusable workflows, with clear dependencies between test deployment, testing, security checks, monitoring setup, and production deployment.
+
+### Quality-Gated Delivery Flow
+Each stage runs only after its required previous stages complete successfully, making the delivery path from test environment to production easier to control and review.
+
+### Faster Pipeline Execution
+Container images are built once, tagged for the workflow run, scanned, promoted to the test environment, and then reused for production deployment instead of being rebuilt. This reduces duplicated build/download work and improves delivery efficiency.
+
+### Scalable Pipeline Structure
+The workflow is modular, so stages can be added, removed, or reordered with minimal changes to the central controller.
+
+### Observability as Code
+Grafana dashboards, data sources, monitoring configuration, and related Helm values are versioned as code, reducing manual post-deployment setup.
+
+### Unified Monitoring and Troubleshooting
+Prometheus provides runtime metrics, Loki centralizes logs, and Falco security events are integrated into Grafana to support release validation and root-cause analysis.
