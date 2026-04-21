@@ -17,6 +17,11 @@ jobs:
           cp /etc/rancher/k3s/k3s.yaml $RUNNER_TEMP/k3s.yaml
           chmod 600 $RUNNER_TEMP/k3s.yaml
 
+      - name: Clean monitoring namespace
+        run: |
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl delete namespace monitoring || true
+          KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl wait --for=delete namespace/monitoring --timeout=120s || true
+
       - name: Apply Grafana dashboard ConfigMap
         run: |
           KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl create namespace monitoring --dry-run=client -o yaml | KUBECONFIG=$RUNNER_TEMP/k3s.yaml kubectl apply -f -
