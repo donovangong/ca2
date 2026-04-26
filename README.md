@@ -23,7 +23,7 @@ services/frontend
 Pages:
 
 - `index.html`: shows products, lets the user enter quantity and place an order
-- `orders.html`: shows all created orders
+- `orders.html`: shows all created orders.
 - `mgmt.html`: management page for updating product price and stock, login with admin:admin
 
 ## Backend Services
