@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict GInztghyP67SxpiSCckDhISMIv3vtj1d6B8cLrfbmowgjPnNlAodDDcnMalSfLS
+\restrict cFrfutx8hyQyUUc0Gd983kf2WjGo3LetSSyi2z0yFVY6K6KbsI7peAX90aRzbDa
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Debian 15.17-1.pgdg13+1)
@@ -170,5 +170,5 @@ ALTER TABLE ONLY public.products
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GInztghyP67SxpiSCckDhISMIv3vtj1d6B8cLrfbmowgjPnNlAodDDcnMalSfLS
+\unrestrict cFrfutx8hyQyUUc0Gd983kf2WjGo3LetSSyi2z0yFVY6K6KbsI7peAX90aRzbDa
 
